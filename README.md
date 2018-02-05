@@ -1,6 +1,6 @@
 PyTorch Inspector
 =================
-Inspector for PyTorch: see how you model is performing
+Inspector for PyTorch: see how your model is performing
 
 
 Dependencies
