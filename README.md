@@ -1,5 +1,5 @@
-ptInspector
-===========
+PyTorch Inspector
+=================
 Inspector for PyTorch: see how you model is performing
 
 
