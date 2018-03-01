@@ -459,7 +459,7 @@ class ProgressTracker(DataLoader):
 
                 # Print info
                 self.print(i, i / self.n_batches, now-start, eta)
-                
+
                 # Reset everything
                 last_print_iteration = i
                 print_it = False
@@ -538,6 +538,9 @@ class ModelInspector(Analyzer):
     def _analyze(self):
         for monitor in self.monitors:
             monitor.analyze(last=False)
+
+    def time(self, data_loader, label="", **kwargs):
+        return ProgressTracker(data_loader, label, **kwargs)
 
 
 
