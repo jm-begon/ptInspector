@@ -409,14 +409,14 @@ class MetricDatafeed(Datafeed):
 class ProgressTracker(DataLoader):
 
     def __init__(self, data_loader, label="", update_rate=0.1,
-                 eta_decay_rate=.9, iteractive=False):
+                 eta_decay_rate=.9, interactive=False):
         self.data_loader = data_loader
         self.label = label
         self.update_rate = update_rate
         self.decay_rate = eta_decay_rate
         self.dataset_size = len(data_loader.dataset)
         self.n_batches = len(data_loader)
-        self.iteractive = iteractive
+        self.interactive = interactive
 
     def set_label(self, label):
         self.label = label
@@ -467,7 +467,7 @@ class ProgressTracker(DataLoader):
                 end = now
 
         end = time.time()
-        if self.iteractive:
+        if self.interactive:
             print()
         print(self.label, "| Duration:",
               datetime.timedelta(seconds=end - start))
@@ -480,7 +480,7 @@ class ProgressTracker(DataLoader):
         line = mask.format(self.label,
                            str(datetime.timedelta(seconds=int(elapsed))),
                            str(datetime.timedelta(seconds=int(eta))))
-        if self.iteractive:
+        if self.interactive:
             print("\r", end="")
             print("{:<80}".format(line), end="")
         else:
