@@ -4,20 +4,20 @@
 The example below is taken from http://pytorch.org/tutorials/beginner/pytorch_with_examples.html#pytorch-custom-nn-modules
 where you can find in-depth comment about the standard PyTorch code.
 
-We will focus here on the monitoring instead to illustrate the `WeightMonitor`
-class. Note however that the design of the `WeightMonitor` was to be integrated
+We will focus here on the monitoring instead to illustrate the `StatMonitor`
+class. Note however that the design of the `StatMonitor` was to be integrated
 to a `ModelInspector`.
 
-The analysis consist in a per layer summary (average + std) of the L2 distance
-of the weights since the last analysis.
-It will also print the smallest and largest weight (in absolute value)
-for each layer.
+The analysis consist in a summary (average + std and first + last)
+of the loss values
 """
-
+import datetime
+import time
 import torch
 from torch.autograd import Variable
+from torch.utils.data import Dataset, DataLoader
 
-from pt_inspector import WeightMonitor
+from pt_inspector import ProgressTracker
 
 N, D_in, H, D_out = 64, 1000, 100, 10
 
@@ -34,21 +34,32 @@ class TwoLayerNet(torch.nn.Module):
         return y_pred
 
 
+class RandomDataset(Dataset):
+
+    def __len__(self):
+        return N * 100
+
+    def __getitem__(self, item):
+        x = torch.randn(N, D_in)
+        y = torch.randn(N, D_out)
+        return x, y
+
+
 if __name__ == '__main__':
     model = TwoLayerNet(D_in, H, D_out)
     criterion = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
 
-    # Create weight monitor and register model
-    # This monitor only works on "in place" tensors, such as those from
-    # a module.
-    monitor = WeightMonitor().register_model(model)
+    data_loader = DataLoader(RandomDataset(), batch_size=N)
 
+    # Create a ProgressTracker to monitor learning
+    data_loader = ProgressTracker(data_loader)
     for epoch in range(5):
-        for iteration in range(100):
-            # Create batch
-            x = Variable(torch.randn(N, D_in))
-            y = Variable(torch.randn(N, D_out), requires_grad=False)
+        start = time.time()
+        data_loader.set_label("Epoch {}".format(epoch))
+        for x, y in data_loader:
+            x = Variable(x)
+            y = Variable(y, requires_grad=False)
 
             y_pred = model(x)
             loss = criterion(y_pred, y)
@@ -56,13 +67,10 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+        print("Epoch", epoch, "ad hoc duration:",
+              datetime.timedelta(seconds=time.time()-start))
 
-        # As a consequence of working with "in place" tensors, there is no
-        # need to actively track the tensors by re-registering it, so that
-        # the monitoring code is minimally invasive
-        print("### Analysis at epoch", epoch)
-        monitor.analyze()
-        print()
+
 
 
 

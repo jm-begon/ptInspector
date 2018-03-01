@@ -62,7 +62,7 @@ if __name__ == '__main__':
         # Print the analyzis
         print("### Analysis at epoch", epoch)
         monitor.analyze()
-        print("-" * 80, "\n\n")
+        print()
 
 
 

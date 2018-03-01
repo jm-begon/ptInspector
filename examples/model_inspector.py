@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     # Use the pseudo-singleton form to create and get the ModelInspector
     # and resgister the model to monitor weights and gradients
-    ModelInspector.get("TwoLayerNet").register(model)
+    ModelInspector.get("TwoLayerNet").register_model(model)
 
     for epoch in range(5):
         for iteration in range(100):
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         # Print the whole analysis
         print("### Analysis at epoch", epoch)
         ModelInspector.get("TwoLayerNet").analyze()
-        print("\n\n")
+        print()
 
 
 

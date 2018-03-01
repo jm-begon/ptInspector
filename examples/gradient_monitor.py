@@ -40,7 +40,7 @@ if __name__ == '__main__':
     # Create weight monitor and register model
     # This monitor only works on "in place" tensors, such as those from
     # a module.
-    monitor = GradientMonitor().register(model, "TwoLayerNet > gradient")
+    monitor = GradientMonitor().register_model(model)
 
     for epoch in range(5):
         for iteration in range(100):
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         # the monitoring code is minimally invasive
         print("### Analysis at epoch", epoch)
         monitor.analyze()
-        print("-" * 80, "\n\n")
+        print()
 
 
 
