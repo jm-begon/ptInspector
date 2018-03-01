@@ -469,7 +469,7 @@ class ProgressTracker(DataLoader):
         end = time.time()
         if self.interactive:
             print()
-        print(self.label, "| Duration:",
+        print("Duration ({}):".format(self.label),
               datetime.timedelta(seconds=end - start))
 
     def print(self, iteration, ratio, elapsed, eta):
