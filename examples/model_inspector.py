@@ -18,6 +18,7 @@ It tracks the weights and gradients and can also monitor the loss
 
 import torch
 from torch.autograd import Variable
+from torch.utils.data import Dataset, DataLoader
 
 from pt_inspector import ModelInspector
 
@@ -34,6 +35,17 @@ class TwoLayerNet(torch.nn.Module):
         h_relu = self.linear1(x).clamp(min=0)
         y_pred = self.linear2(h_relu)
         return y_pred
+
+
+class RandomDataset(Dataset):
+
+    def __len__(self):
+        return N * 100
+
+    def __getitem__(self, item):
+        x = torch.randn(N, D_in)
+        y = torch.randn(N, D_out)
+        return x, y
 
 
 def backward(model, x, y, criterion, optimizer):
@@ -53,12 +65,17 @@ if __name__ == '__main__':
     criterion = torch.nn.MSELoss(size_average=False)
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
 
+    data_loader = DataLoader(RandomDataset(), batch_size=N)
+
     # Use the pseudo-singleton form to create and get the ModelInspector
     # and resgister the model to monitor weights and gradients
     ModelInspector.get("TwoLayerNet").register_model(model)
 
+    # Create a ProgressTracker to monitor learning
+    data_loader = ModelInspector.get("TwoLayerNet").time(data_loader)
     for epoch in range(5):
-        for iteration in range(100):
+        data_loader.set_label("Epoch {}".format(epoch))
+        for x, y in data_loader:
             # Create batch
             x = Variable(torch.randn(N, D_in))
             y = Variable(torch.randn(N, D_out), requires_grad=False)

@@ -225,7 +225,7 @@ class MetricMonitor(Monitor):
             self.print(mask.format(label,
                                    "{}/{} ({:.2f}%)".format(correct,
                                                             size,
-                                                            accuracy),
+                                                            accuracy*100),
                                    "{:.2E}".format(loss)))
 
     def title(self):
@@ -481,8 +481,7 @@ class ProgressTracker(DataLoader):
                            str(datetime.timedelta(seconds=int(elapsed))),
                            str(datetime.timedelta(seconds=int(eta))))
         if self.interactive:
-            print("\r", end="")
-            print("{:<80}".format(line), end="")
+            print("\r", "{:<80}".format(line), end="", sep="")
         else:
             print("{:<80}".format(line))
 
