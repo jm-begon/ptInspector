@@ -222,7 +222,7 @@ class MetricMonitor(Monitor):
         self.print(mask.format("Label", "Accuracy", "Avg. cross entropy"))
         for label, (loss, accuracy, size) in self.scalars.items():
             correct = int(accuracy*size)
-            self.print(mask.format(label,
+            self.print(mask.format(label[:15],
                                    "{}/{} ({:.2f}%)".format(correct,
                                                             size,
                                                             accuracy*100),
@@ -272,7 +272,7 @@ class WeightMonitor(VariableMonitor):
             current_weight = var2np(variable)
             dist = (current_weight - weight) ** 2
             abs_weight = np.abs(current_weight)
-            self.print(mask.format(name,
+            self.print(mask.format(name[:19],
                                    "{:.2E}  +/- {:.2E}".format(dist.mean(),
                                                                dist.std()),
                                    "{:.2E}".format(abs_weight.min()),
@@ -306,7 +306,7 @@ class StatMonitor(VariableMonitor):
             avg_mean, avg_std = running_stat.get_running()
             avg_first, _ = running_stat.get_first()
             avg_last, _ = running_stat.get_last()
-            self.print(mask.format(name,
+            self.print(mask.format(name[:19],
                                    "{:.2E}  +/- {:.2E}".format(avg_mean,
                                                                avg_std),
                                    "{:.2E}".format(avg_first),
@@ -396,7 +396,7 @@ class MetricDatafeed(Datafeed):
                 loss, accuracy = self._compute_loss_acc(data_loader)
                 if self.hook:
                     self.hook(label, loss, accuracy)
-                self.print(mask.format(label, accuracy, loss))
+                self.print(mask.format(label[:30], accuracy, loss))
 
         finally:
             if training:
@@ -508,6 +508,20 @@ class ModelInspector(Analyzer):
             cls.__instances[name] = inspector
         return inspector
 
+    @classmethod
+    def analyze_all(cls):
+        for inspector in cls.__instances.values():
+            inspector.analyze()
+            print()
+
+    @classmethod
+    def reset(cls):
+        cls.__instances.clear()
+
+    @classmethod
+    def list(cls):
+        return cls.__instances.keys()
+
     def __init__(self, name):
         super().__init__()
         self.name = name
@@ -523,7 +537,7 @@ class ModelInspector(Analyzer):
             monitor.register_model(model)
         return self
 
-    def monitor_loss(self, variable: torch.autograd.Variable, name):
+    def monitor_loss(self, variable: torch.autograd.Variable, name="Loss"):
         self.loss_monitor.register(variable, name)
         return self
 
