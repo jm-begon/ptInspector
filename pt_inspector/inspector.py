@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 
 from torch.nn import Module
 
+from .chrono import Chrono
+
 
 def var2np(variable):
     return variable.cpu().data.numpy()
@@ -321,7 +323,7 @@ class GradientMonitor(StatMonitor):
     """
     GradientMonitor
     ===============
-    Monitor average square partial derivative. Use the hook mechanism of Pytorch
+    Monitor average square partial derivative. Use the hook mechanism of PyTorch
     """
     def __init__(self):
         super().__init__()
@@ -406,84 +408,32 @@ class MetricDatafeed(Datafeed):
 
 
 # ================================= PROGRESS ================================= #
-class ProgressTracker(DataLoader):
+class ProgressTracker(Chrono, DataLoader):
 
     def __init__(self, data_loader, label="", update_rate=0.1,
                  eta_decay_rate=.9, interactive=False):
-        self.data_loader = data_loader
-        self.label = label
-        self.update_rate = update_rate
-        self.decay_rate = eta_decay_rate
+        Chrono.__init__(self, iterator=data_loader, label=label,
+                        update_rate=update_rate, eta_decay_rate=eta_decay_rate,
+                        interactive=interactive)
         self.dataset_size = len(data_loader.dataset)
-        self.n_batches = len(data_loader)
-        self.interactive = interactive
 
     def set_label(self, label):
         self.label = label
 
     @property
     def dataset(self):
-        return self.data_loader.dataset
+        return self.iterator.dataset
 
     @property
     def batch_size(self):
-        return self.data_loader.batch_size
+        return self.iterator.batch_size
 
     def __len__(self):
         return len(self.data_loader)
 
-    def __iter__(self):
-        print_it = False
-        last_print_iteration = 0
-        start = time.time()
-        end = start
-        average_speed = None
-        for i, x in enumerate(self.data_loader):
-            yield x
-
-            i += 1
-            # Should we print ?
-            if (i-last_print_iteration)/self.n_batches >= self.update_rate:
-                print_it = True
-
-            # Do print if needed
-            if print_it:
-                # Compute estimated time of arrival
-                now = time.time()
-                duration = now - end
-                current_speed = (i - last_print_iteration) / duration
-                if average_speed is None:
-                    average_speed = current_speed
-                average_speed = self.decay_rate * average_speed \
-                                + (1 - self.decay_rate) * current_speed
-                eta = (self.n_batches - i) / average_speed
-
-                # Print info
-                self.print(i, i / self.n_batches, now-start, eta)
-
-                # Reset everything
-                last_print_iteration = i
-                print_it = False
-                end = now
-
-        end = time.time()
-        if self.interactive:
-            print()
-        print("Duration ({}):".format(self.label),
-              datetime.timedelta(seconds=end - start))
-
-    def print(self, iteration, ratio, elapsed, eta):
-        mask = "{{}}    {:<20} Elapsed {{:>10}} | ETA {{:<13}}" \
-               "".format("[{}/{} ({:.0f}%)]".format(iteration * self.batch_size,
-                                                    self.dataset_size,
-                                                    ratio * 100))
-        line = mask.format(self.label,
-                           str(datetime.timedelta(seconds=int(elapsed))),
-                           str(datetime.timedelta(seconds=int(eta))))
-        if self.interactive:
-            print("\r", "{:<80}".format(line), end="", sep="")
-        else:
-            print("{:<80}".format(line))
+    def print(self, iteration, length, elapsed, eta):
+        super().print(iteration * self.batch_size, self.dataset_size,
+                      elapsed, eta)
 
 
 # ================================= INSPECTOR ================================ #
