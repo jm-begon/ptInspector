@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 
 from torch.nn import Module
 
+from pt_inspector.formatting import format_tree_view
 from .chrono import Chrono
 
 
@@ -270,7 +271,11 @@ class WeightMonitor(VariableMonitor):
         mask = "{{:<19}}{{:^23}}{0:7}{{:^8}}{0:7}{{:^8}}".format(" ")
         self.print(mask.format("Var. name", "L2 Dist", "Smallest",
                                "Largest"))
-        for name, (variable, weight) in self._var_and_weight.items():
+        for name, value in format_tree_view(self._var_and_weight.items()):
+            if value is None:
+                self.print(mask.format(name[:18], '', '', ''))
+                continue
+            variable, weight = value
             current_weight = var2np(variable)
             dist = (current_weight - weight) ** 2
             abs_weight = np.abs(current_weight)
@@ -304,7 +309,10 @@ class StatMonitor(VariableMonitor):
         mask = "{{:<19}}{{:^23}}{0:7}{{:^8}}{0:7}{{:^8}}".format(" ")
         self.print(mask.format("Var. name", "On average", "First it.",
                                "Last it."))
-        for name, running_stat in self._running_stats.items():
+        for name, running_stat in format_tree_view(self._running_stats.items()):
+            if running_stat is None:
+                self.print(mask.format(name[:18], '', '', ''))
+                continue
             avg_mean, avg_std = running_stat.get_running()
             avg_first, _ = running_stat.get_first()
             avg_last, _ = running_stat.get_last()
