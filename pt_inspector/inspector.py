@@ -326,6 +326,9 @@ class StatMonitor(VariableMonitor):
         self.print("Statistic monitoring (Mean/[Std])")
         self.line()
 
+    def empty(self):
+        return len(self._running_stats) == 0
+
 
 class GradientMonitor(StatMonitor):
     """
