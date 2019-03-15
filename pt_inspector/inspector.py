@@ -3,7 +3,6 @@ from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 
 import numpy as np
-import time
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -13,68 +12,11 @@ from torch.nn import Module
 
 from pt_inspector.formatting import format_tree_view
 from .chrono import Chrono
+from .stat import StreamingStat
 
 
 def var2np(variable):
     return variable.cpu().data.numpy()
-
-
-class StreamingStat(object):
-    """
-    RunningStat
-    ===========
-    Computes the mean and std of some quantity given by batches of tensors
-    """
-    def __init__(self):
-        self.size = 0
-        self.first_mean = 0
-        self.first_var = 0
-        self.last_mean = 0
-        self.last_var = 0
-        self.running_mean = 0
-        self.running_square_mean = 0
-        self.running_var = 0  # Running within "addition" variance
-
-    def add(self, np_tensor):
-        # New values
-        mean = np_tensor.mean()
-        mean_sq = mean ** 2
-        var = np_tensor.var()
-        # Save last
-        self.last_mean = mean
-        self.last_var = var
-
-        size = np.prod(np_tensor.shape)
-        if self.size == 0:
-            # First capture
-            self.first_mean = self.last_mean
-            self.first_var = self.last_var
-
-        # Running stuff
-        size_ratio_correction = self.size / float(self.size + size)
-        size_ratio = size / float(self.size + size)
-        self.size += size
-
-        self.running_mean = mean * size_ratio \
-                + self.running_mean * size_ratio_correction
-        self.running_square_mean = mean_sq * size_ratio \
-                + self.running_square_mean * size_ratio_correction
-        self.running_var = var * size_ratio \
-                + self.running_var * size_ratio_correction
-
-    def get_running(self):
-        btw_var = self.running_square_mean - self.running_mean**2
-        wth_var = self.running_var
-        return self.running_mean, np.sqrt(btw_var + wth_var)
-
-    def get_first(self):
-        return self.first_mean, np.sqrt(self.first_var)
-
-    def get_last(self):
-        return self.last_mean, np.sqrt(self.last_var)
-
-    def reset(self):
-        self.size = 0
 
 
 # ================================== ANALYZER ================================ #
