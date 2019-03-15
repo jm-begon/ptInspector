@@ -2,6 +2,10 @@ import datetime
 import time
 
 
+def duration_str(start, end):
+    return "{}".format(datetime.timedelta(seconds=end - start))
+
+
 class Chrono(object):
     """iterator must have a length"""
     def __init__(self, iterator, label, update_rate=0.1,
@@ -50,8 +54,7 @@ class Chrono(object):
         end = time.time()
         if self.interactive:
             print()
-        print("Duration ({}):".format(self.label),
-              datetime.timedelta(seconds=end - start))
+        print("Duration ({}):".format(self.label), duration_str(start, end))
 
     def print(self, iteration, length, elapsed, eta):
         mask = "{{}}    {:<20} Elapsed {{:>10}} | ETA {{:<13}}" \
