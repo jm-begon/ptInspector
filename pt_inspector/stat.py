@@ -61,8 +61,8 @@ class Stat(object):
 
 
 class Distrib(Stat):
-    def __init__(self, size=0, min=-np.inf, running_mean=0, running_square_mean=0,
-                 running_var=0, max=np.inf):
+    def __init__(self, size=0, min=np.inf, running_mean=0, running_square_mean=0,
+                 running_var=0, max=-np.inf):
         super().__init__(size, running_mean, running_square_mean, running_var)
         self.min = min
         self.max = max
