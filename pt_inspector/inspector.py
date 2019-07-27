@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from torch.nn import Module
 
-from pt_inspector.formatting import format_tree_view
+from .formatting import format_tree_view
 from .chrono import Chrono
 from .stat import StreamingStat
 
@@ -382,7 +382,7 @@ class ProgressTracker(Chrono, DataLoader):
         return self.iterator.batch_size
 
     def __len__(self):
-        return len(self.data_loader)
+        return len(self.iterator)
 
     def print(self, iteration, length, elapsed, eta):
         super().print(iteration * self.batch_size, self.dataset_size,
